@@ -1,4 +1,7 @@
 const ITERATIONS = 250000;
+const MAX_PLAIN_CHARS = 1000;
+const OBFUSCATED_PREFIX = "p2.";
+const OBFUSCATION_LABEL = "encrypted-share-page/url-payload-obfuscation/v1";
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -6,6 +9,7 @@ const els = {
   encryptForm: document.querySelector("#encrypt-form"),
   decryptForm: document.querySelector("#decrypt-form"),
   plainText: document.querySelector("#plain-text"),
+  plainCounter: document.querySelector("#plain-counter"),
   encryptPassword: document.querySelector("#encrypt-password"),
   shareOutput: document.querySelector("#share-output"),
   shareUrl: document.querySelector("#share-url"),
@@ -45,6 +49,41 @@ function randomBytes(length) {
   const bytes = new Uint8Array(length);
   crypto.getRandomValues(bytes);
   return bytes;
+}
+
+function concatBytes(...arrays) {
+  const totalLength = arrays.reduce((sum, array) => sum + array.length, 0);
+  const joined = new Uint8Array(totalLength);
+  let offset = 0;
+
+  arrays.forEach((array) => {
+    joined.set(array, offset);
+    offset += array.length;
+  });
+
+  return joined;
+}
+
+function xorBytes(bytes, mask) {
+  return bytes.map((byte, index) => byte ^ mask[index]);
+}
+
+async function makeObfuscationMask(salt, length) {
+  const label = encoder.encode(OBFUSCATION_LABEL);
+  const mask = new Uint8Array(length);
+  let offset = 0;
+  let counter = 0;
+
+  while (offset < length) {
+    const counterBytes = new Uint8Array(4);
+    new DataView(counterBytes.buffer).setUint32(0, counter, false);
+    const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", concatBytes(label, salt, counterBytes)));
+    mask.set(digest.slice(0, Math.min(digest.length, length - offset)), offset);
+    offset += digest.length;
+    counter += 1;
+  }
+
+  return mask;
 }
 
 async function deriveKey(password, salt, iterations) {
@@ -104,11 +143,29 @@ async function decryptPayload(payload, password) {
   return decoder.decode(decrypted);
 }
 
-function encodePayload(payload) {
-  return bytesToBase64Url(encoder.encode(JSON.stringify(payload)));
+async function encodePayload(payload) {
+  const salt = randomBytes(16);
+  const jsonBytes = encoder.encode(JSON.stringify(payload));
+  const mask = await makeObfuscationMask(salt, jsonBytes.length);
+  const obfuscated = xorBytes(jsonBytes, mask);
+  const packed = concatBytes(Uint8Array.of(2), salt, obfuscated);
+  return `${OBFUSCATED_PREFIX}${bytesToBase64Url(packed)}`;
 }
 
-function decodePayload(encoded) {
+async function decodePayload(encoded) {
+  if (encoded.startsWith(OBFUSCATED_PREFIX)) {
+    const packed = base64UrlToBytes(encoded.slice(OBFUSCATED_PREFIX.length));
+    if (packed.length < 18 || packed[0] !== 2) {
+      throw new Error("这个加密数据格式不支持。");
+    }
+
+    const salt = packed.slice(1, 17);
+    const obfuscated = packed.slice(17);
+    const mask = await makeObfuscationMask(salt, obfuscated.length);
+    const json = decoder.decode(xorBytes(obfuscated, mask));
+    return JSON.parse(json);
+  }
+
   const json = decoder.decode(base64UrlToBytes(encoded));
   return JSON.parse(json);
 }
@@ -163,6 +220,16 @@ function setBusy(button, busy, label) {
   }
 }
 
+function plainCharCount() {
+  return Array.from(els.plainText.value).length;
+}
+
+function updatePlainCounter() {
+  const count = plainCharCount();
+  els.plainCounter.textContent = `${count} / ${MAX_PLAIN_CHARS}`;
+  els.plainCounter.classList.toggle("is-error", count > MAX_PLAIN_CHARS);
+}
+
 els.encryptForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const plainText = els.plainText.value;
@@ -171,6 +238,12 @@ els.encryptForm.addEventListener("submit", async (event) => {
 
   if (!plainText.trim()) {
     setStatus("请先输入要加密的内容。", "error");
+    els.plainText.focus();
+    return;
+  }
+
+  if (plainCharCount() > MAX_PLAIN_CHARS) {
+    setStatus(`原文最多 ${MAX_PLAIN_CHARS} 个字符，请缩短后再生成链接。`, "error");
     els.plainText.focus();
     return;
   }
@@ -186,7 +259,7 @@ els.encryptForm.addEventListener("submit", async (event) => {
     setBusy(button, true, "正在加密...");
     setStatus("正在本地加密，请稍等。");
     const payload = await encryptText(plainText, password);
-    const encoded = encodePayload(payload);
+    const encoded = await encodePayload(payload);
     const shareUrl = buildShareUrl(encoded);
 
     els.shareUrl.value = shareUrl;
@@ -224,7 +297,7 @@ els.decryptForm.addEventListener("submit", async (event) => {
     requireCrypto();
     setBusy(button, true, "正在解密...");
     setStatus("正在尝试解密。");
-    const payload = decodePayload(encoded);
+    const payload = await decodePayload(encoded);
     const plainText = await decryptPayload(payload, password);
     els.decryptedText.textContent = plainText;
     els.decryptOutput.hidden = false;
@@ -267,4 +340,6 @@ function loadPayloadFromUrl() {
 }
 
 loadPayloadFromUrl();
+updatePlainCounter();
+els.plainText.addEventListener("input", updatePlainCounter);
 window.addEventListener("hashchange", loadPayloadFromUrl);

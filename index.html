@@ -31,8 +31,9 @@
           <form id="encrypt-form" class="stack">
             <label class="field">
               <span>原文内容</span>
-              <textarea id="plain-text" rows="9" placeholder="把要加密的内容粘贴到这里"></textarea>
+              <textarea id="plain-text" rows="9" maxlength="1000" placeholder="把要加密的内容粘贴到这里"></textarea>
             </label>
+            <small id="plain-counter" class="counter">0 / 1000</small>
 
             <label class="field">
               <span>加密密码</span>
