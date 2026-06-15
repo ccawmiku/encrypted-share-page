@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>加密分享页</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">GitHub Pages 静态加密工具</p>
+          <h1 id="page-title">把一段文字变成需要密码才能打开的链接</h1>
+        </div>
+        <p class="intro-copy">
+          明文和密码只在浏览器本地处理。分享链接里保存的是 AES-GCM 加密后的内容，打开链接后只需要输入密码即可解密。
+        </p>
+      </section>
+
+      <section class="workspace" aria-label="加密和解密工具">
+        <article class="panel">
+          <div class="panel-head">
+            <span class="step">01</span>
+            <div>
+              <h2>生成加密链接</h2>
+              <p>粘贴内容，设置密码，然后复制生成的 URL。</p>
+            </div>
+          </div>
+
+          <form id="encrypt-form" class="stack">
+            <label class="field">
+              <span>原文内容</span>
+              <textarea id="plain-text" rows="9" placeholder="把要加密的内容粘贴到这里"></textarea>
+            </label>
+
+            <label class="field">
+              <span>加密密码</span>
+              <input id="encrypt-password" type="password" autocomplete="new-password" placeholder="输入用于解密的密码" />
+            </label>
+
+            <button class="primary-action" type="submit">生成加密 URL</button>
+          </form>
+
+          <div id="share-output" class="result" hidden>
+            <div class="result-head">
+              <strong>加密链接</strong>
+              <button id="copy-link" class="ghost-action" type="button">复制</button>
+            </div>
+            <textarea id="share-url" rows="4" readonly></textarea>
+            <p id="link-note" class="note"></p>
+          </div>
+        </article>
+
+        <article class="panel decrypt-panel">
+          <div class="panel-head">
+            <span class="step">02</span>
+            <div>
+              <h2>打开链接后解密</h2>
+              <p id="payload-status">如果 URL 里有密文，这里会自动填入。</p>
+            </div>
+          </div>
+
+          <form id="decrypt-form" class="stack">
+            <label class="field">
+              <span>加密数据</span>
+              <textarea id="encrypted-payload" rows="6" placeholder="打开加密链接后会自动填入，也可以手动粘贴完整链接或 payload"></textarea>
+            </label>
+
+            <label class="field">
+              <span>解密密码</span>
+              <input id="decrypt-password" type="password" autocomplete="current-password" placeholder="输入生成链接时设置的密码" />
+            </label>
+
+            <button class="primary-action" type="submit">解密并显示原文</button>
+          </form>
+
+          <div id="decrypt-output" class="result" hidden>
+            <div class="result-head">
+              <strong>原文</strong>
+              <button id="copy-plain" class="ghost-action" type="button">复制</button>
+            </div>
+            <pre id="decrypted-text"></pre>
+          </div>
+        </article>
+      </section>
+
+      <p id="status-message" class="status" role="status" aria-live="polite"></p>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
