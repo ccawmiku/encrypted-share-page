@@ -214,7 +214,7 @@ function requireCrypto() {
 
 function setBusy(button, busy, label) {
   button.disabled = busy;
-  if (label) {
+  if (label || button.dataset.readyText) {
     button.dataset.readyText ||= button.textContent;
     button.textContent = busy ? label : button.dataset.readyText;
   }
