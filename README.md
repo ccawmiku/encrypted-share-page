@@ -4,7 +4,7 @@
 
 访问地址：https://share.onya.cc
 
-本分支为 `cloudflare-pages`，Pages 生产部署跟踪此分支；`main` 保留原有 GitHub Pages 版本。
+本分支为 `cloudflare-pages`，Pages 生产部署使用此分支；`main` 保留原有 GitHub Pages 版本。
 
 ## 特点
 
@@ -34,7 +34,16 @@ npm run dev
 - 构建输出目录：`dist`。
 - 自定义域名：`share.onya.cc`。
 
-Pages 通过 Git 集成自动构建此分支的后续提交。构建只复制 `index.html`、`app.js`、`styles.css` 和 `_headers`，不会公开仓库配置或开发文件。无需 Workers 脚本、Pages Functions、数据库或服务端密码。
+项目使用 Pages Direct Upload。更新后运行：
+
+~~~bash
+npm ci
+npm run deploy
+~~~
+
+部署前通过 Wrangler 登录，或在当前进程设置 `CLOUDFLARE_ACCOUNT_ID` 和具有 Pages Edit 权限的 `CLOUDFLARE_API_TOKEN`；不要将凭证写进仓库。推送 Git 分支不会自动部署（创建项目时 Cloudflare 的 Git 安装接口返回错误）。
+
+构建只复制 `index.html`、`app.js`、`styles.css` 和 `_headers`，不会公开仓库配置或开发文件。无需 Workers 脚本、Pages Functions、数据库或服务端密码。
 
 `_headers` 限制脚本和样式仅从本站加载、禁止页面发起网络连接和被嵌入，并设置不发送 Referer、禁止 MIME 嗅探与缓存重新验证。分享链接使用当前访问域名生成，密文继续放在 `#payload=` 中，兼容原有载荷格式。
 

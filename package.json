@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/prepare-assets.mjs",
-    "dev": "npm run build && python -m http.server 8000 --directory dist"
+    "dev": "npm run build && python -m http.server 8000 --directory dist",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name encrypted-share-page --branch cloudflare-pages"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "wrangler": "4.158.0"
   }
 }
