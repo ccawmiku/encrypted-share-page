@@ -1,0 +1,13 @@
+{
+  "name": "encrypted-share-page",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/prepare-assets.mjs",
+    "dev": "npm run build && python -m http.server 8000 --directory dist"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
