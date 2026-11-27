@@ -1,0 +1,15 @@
+{
+  "name": "encrypted-share-page",
+  "version": "1.0.0",
+  "private": true,
+  "description": "纯静态浏览器端 Web Crypto 加密分享应用",
+  "scripts": {
+    "lint:syntax": "node --check crypto-core.js && node --check app.js && node --check playwright.config.mjs && node --check tests/crypto.test.mjs && node --check tests/app.test.mjs && node --check tests/e2e.spec.mjs",
+    "test:unit": "node --test tests/crypto.test.mjs tests/app.test.mjs",
+    "test:e2e": "playwright test",
+    "test": "npm run lint:syntax && npm run test:unit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}

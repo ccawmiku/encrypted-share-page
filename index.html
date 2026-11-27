@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>加密分享页</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -31,7 +32,7 @@
           <form id="encrypt-form" class="stack">
             <label class="field">
               <span>原文内容</span>
-              <textarea id="plain-text" rows="9" maxlength="1000" placeholder="把要加密的内容粘贴到这里"></textarea>
+              <textarea id="plain-text" rows="9" placeholder="把要加密的内容粘贴到这里"></textarea>
             </label>
             <small id="plain-counter" class="counter">0 / 1000</small>
 
@@ -89,6 +90,7 @@
       <p id="status-message" class="status" role="status" aria-live="polite"></p>
     </main>
 
+    <script src="crypto-core.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
