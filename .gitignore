@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+__pycache__/
+*.pyc
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.DS_Store
+Thumbs.db
